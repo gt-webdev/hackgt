@@ -1,0 +1,30 @@
+<html>
+  <head>
+    <title>Everyone's an Admin</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <header>
+      <h1>Welcome to Hell, Where Everyone's an Admin!</h1>
+    </header>
+    <main>
+      <form class="createSection" method="POST" action="/">
+        <h2>Create a Post</h2>
+        <input type="text" value="" name="title" />
+        <textarea name="body"></textarea>
+        <input type="submit" value="Submit" />
+      </form>
+      <% posts.forEach((post, index) => { %>
+        <form method="POST" action="/">
+          <input type="text" name="title" value="<%= post.title %>" />
+          <textarea name="body"><%= post.body %></textarea>
+          <input type="hidden" name="index" value="<%= index %>" />
+          <div class="buttonRow">
+            <input type="submit" value="Delete" name="delete" />
+            <input type="submit" value="Update" name="update" />
+          </div>
+        </form>
+      <% }) %>
+    </main>
+  </body>
+</html>
