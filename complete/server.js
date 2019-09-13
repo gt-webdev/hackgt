@@ -1,16 +1,10 @@
-import express from 'express';
-import path from 'path';
-import bodyParser from 'body-parser';
+const express = require('express');
+const path = require('path');
+const bodyParser = require('body-parser');
+const MongoClient = require('mongodb').MongoClient;
+const ObjectID = require('mongodb').ObjectID;
 
 const app = express();
-
-// An array of posts. This is usually in a database
-let posts = [
-  {
-    "title": "Example Post",
-    "body": "This is an example Body."
-  }
-];
 
 // ####################################################
 // Set Up Server
@@ -21,74 +15,127 @@ app.set('view engine', 'ejs');
 app.use(bodyParser.urlencoded({ extended: true }))
 app.use(bodyParser.json())
 
-const PORT = 3000;
+const PORT = 8080;
+
+// ####################################################
+// Set Up Database
+// ####################################################
+const collectionName = 'posts';
+const uriString = ''; // your MongoDB url goes here
+
+let collection;
+let db;
+MongoClient.connect(uriString, function (err, client) {
+    if (err) {
+        console.log(err);
+    }
+    console.log("Connected correctly to mongo");
+    db = client.db('hackgteeny');
+    collection = db.collection(collectionName);
+});
 
 // ####################################################
 // View Routes
 // ####################################################
+displayPosts = function (req, res) {
+    collection.find({}).toArray(function(err, posts) {
+        if (err) {
+            res.status(500).send();
+        } else {
+            res.render('index', { posts: posts });
+        }
+    });
+};
+
 app.get('/', (req, res) => {
-  res.render('index', { posts: posts });
+    displayPosts(req, res);
 });
 
 app.post('/', (req, res) => {
-  if (req.body.update) {
-    posts[req.body.index] = {
-      title: req.body.title,
-      body: req.body.body
+    if (req.body.update) {
+        collection.update({ _id: ObjectID(req.body.id) }, { $set: {title: req.body.title, body: req.body.body} }, function(err, status) {
+            if (err) {
+                res.status(500).send();
+            } else {
+                displayPosts(req, res);
+            }
+        });
+    } else if (req.body.delete) {
+        collection.deleteOne({ _id: ObjectID(req.body.id) }, function(err, status) {
+            if (err) {
+                res.status(500).send();
+            } else {
+                displayPosts(req, res);
+            }
+        });
+    } else {
+        collection.insert({
+            title: req.body.title,
+            body: req.body.body
+        }, function(err, status) {
+            if (err) {
+                res.status(500).send();
+            } else {
+                displayPosts(req, res);
+            }
+        });
     }
-  } else if (req.body.delete) {
-    posts.splice(req.body.index, 1);
-  } else {
-    posts.push({
-      title: req.body.title,
-      body: req.body.body
-    })
-  }
-  res.render('index', { posts: posts });
 });
 
 // ####################################################
 // API Routes
 // ####################################################
 app.get('/api/posts', (req, res) => {
-  res.send(posts);
+    collection.find({}).toArray(function(err, posts) {
+        if (err) {
+            res.status(500).send();
+        } else {
+            res.send(posts);
+        }
+    });
 });
 
 app.get('/api/posts/:id', (req, res) => {
-  if (posts[req.params.id]) {
-    res.send(posts[req.params.id])
-  } else {
-    res.status(404).send("Post Not Found.");
-  }
+    collection.findOne({ _id: ObjectID(req.params.id) }, function(err, post) {
+        if (err) {
+            res.status(500).send();
+        } else {
+            res.send(post);
+        }
+    });
 });
 
 app.post('/api/posts', (req, res) => {
-  posts.push({
-    title: req.body.title,
-    body: req.body.body
-  })
-  res.status(201).send("Post Created")
+    collection.insert({
+        title: req.body.title,
+        body: req.body.body
+    }, function(err, status) {
+        if (err) {
+            res.status(500).send();
+        } else {
+            res.status(201).send("Post Created")
+        }
+    });
 });
 
 app.put('/api/posts/:id', (req, res) => {
-  if (posts[req.params.id]) {
-    posts[req.params.id] = {
-      title: req.body.title,
-      body: req.body.body
-    }
-    res.send("Post Updated")
-  } else {
-    res.status(404).send("Post Not Found.");
-  }
+    collection.update({ _id: ObjectID(req.params.id) }, { $set: {title: req.body.title, body: req.body.body} }, function(err, status) {
+        if (err) {
+            res.status(500).send();
+        } else {
+            res.status(201).send("Post Updated")
+        }
+    });
 });
 
 app.delete('/api/posts/:id', (req, res) => {
-  if (posts[req.params.id]) {
-    posts.splice(req.body.index, 1);
-    res.send("Post Deleted")
-  } else {
-    res.status(404).send("Post Not Found.");
-  }
+    collection.deleteOne({ _id: ObjectID(req.params.id) }, function(err, status) {
+        if (err) {
+            res.status(500).send();
+        } else {
+            res.send("Post Deleted")
+        }
+    });
 });
 
 // ####################################################
@@ -98,5 +145,5 @@ app.delete('/api/posts/:id', (req, res) => {
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.listen(PORT, () => {
-  console.log('Listening on port ' + PORT);
+    console.log('Listening on port ' + PORT);
 });
