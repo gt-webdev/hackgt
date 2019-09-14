@@ -83,62 +83,6 @@ app.post('/', (req, res) => {
 });
 
 // ####################################################
-// API Routes
-// ####################################################
-app.get('/api/posts', (req, res) => {
-    collection.find({}).toArray(function(err, posts) {
-        if (err) {
-            res.status(500).send();
-        } else {
-            res.send(posts);
-        }
-    });
-});
-
-app.get('/api/posts/:id', (req, res) => {
-    collection.findOne({ _id: ObjectID(req.params.id) }, function(err, post) {
-        if (err) {
-            res.status(500).send();
-        } else {
-            res.send(post);
-        }
-    });
-});
-
-app.post('/api/posts', (req, res) => {
-    collection.insert({
-        title: req.body.title,
-        body: req.body.body
-    }, function(err, status) {
-        if (err) {
-            res.status(500).send();
-        } else {
-            res.status(201).send("Post Created")
-        }
-    });
-});
-
-app.put('/api/posts/:id', (req, res) => {
-    collection.update({ _id: ObjectID(req.params.id) }, { $set: {title: req.body.title, body: req.body.body} }, function(err, status) {
-        if (err) {
-            res.status(500).send();
-        } else {
-            res.status(201).send("Post Updated")
-        }
-    });
-});
-
-app.delete('/api/posts/:id', (req, res) => {
-    collection.deleteOne({ _id: ObjectID(req.params.id) }, function(err, status) {
-        if (err) {
-            res.status(500).send();
-        } else {
-            res.send("Post Deleted")
-        }
-    });
-});
-
-// ####################################################
 // Run Server
 // ####################################################
 
