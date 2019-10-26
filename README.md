@@ -1,2 +1,2 @@
-# hackgteeny
-Node.js and MongoDB Tutorial for HackGTeeny
+# hackgt
+Node.js and MongoDB Tutorial for HackGT

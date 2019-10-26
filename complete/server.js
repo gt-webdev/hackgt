@@ -30,7 +30,7 @@ MongoClient.connect(uriString, function (err, client) {
         console.log(err);
     }
     console.log("Connected correctly to mongo");
-    db = client.db('hackgteeny');
+    db = client.db('hackgt');
     collection = db.collection(collectionName);
 });
 
